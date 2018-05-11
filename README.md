@@ -4,6 +4,11 @@ This is a wrapper that provides a compatibility layer between Auto-Sklearn and O
 The wrapper extends Sklearn's `BaseSearchCV` and provides all the internal parameters that OpenML needs, such as 
 `cv_results_`, `best_index_`, `best_params_`, `best_score_` and `classes_`.
 
+## Installation
+```
+pip install auto-sklearn-wrapper
+```
+
 ## Example usage
 ```python
 import openml

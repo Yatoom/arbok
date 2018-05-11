@@ -1,15 +1,12 @@
 import openml
 import autosklearn.classification
-from sklearn.ensemble import RandomForestClassifier
-from scipy.stats import randint as sp_randint
-from sklearn.model_selection import RandomizedSearchCV
 
 from wrapper import AutoSklearnCV
 
 task = openml.tasks.get_task(31)
 
 # Auto sklearn
-askl = autosklearn.classification.AutoSklearnClassifier(time_left_for_this_task=20)
+askl = autosklearn.classification.AutoSklearnClassifier(time_left_for_this_task=25)
 clf = AutoSklearnCV(askl)
 
 # Run

@@ -5,10 +5,10 @@ from sklearn.model_selection._search import BaseSearchCV
 from sklearn.utils import check_X_y
 from sklearn.utils.multiclass import unique_labels
 
-__version__ = 0.2
+__version__ = 0.1
 
 
-class AutoSklearnCV(BaseSearchCV):
+class AutoSklearnWrapper(BaseSearchCV):
     def __init__(self, estimator, verbose=False):
 
         self.verbose = verbose
@@ -25,7 +25,7 @@ class AutoSklearnCV(BaseSearchCV):
         self.param_distributions = {}
 
         # Call to super
-        super(AutoSklearnCV, self).__init__(estimator)
+        super(AutoSklearnWrapper, self).__init__(estimator)
 
     @property
     def classes_(self):
@@ -34,7 +34,7 @@ class AutoSklearnCV(BaseSearchCV):
     def fit(self, X, y=None, groups=None, **fit_params):
 
         if self.verbose:
-            print("AutoSklearnCV wrapper - fit")
+            print("AutoSklearnCV auto_sklearn_wrapper - fit")
 
         # Check that X and y have correct shape
         X, y = check_X_y(X, y)
@@ -70,7 +70,7 @@ class AutoSklearnCV(BaseSearchCV):
 
     def predict(self, X):
         if self.verbose:
-            print("AutoSklearnCV wrapper - predict")
+            print("AutoSklearnCV auto_sklearn_wrapper - predict")
 
         # Check is fit had been called
         self._check_is_fitted('predict')
@@ -79,7 +79,7 @@ class AutoSklearnCV(BaseSearchCV):
 
     def predict_proba(self, X):
         if self.verbose:
-            print("AutoSklearnCV wrapper - predict_proba")
+            print("AutoSklearnCV auto_sklearn_wrapper - predict_proba")
 
         # Check is fit had been called
         self._check_is_fitted('predict_proba')

@@ -1,5 +1,5 @@
 # AutoSklearn wrapper
-This is a wrapper that provides a compatibility layer between AutoSklearn and OpenML.
+This is a wrapper that provides a compatibility layer between Auto-Sklearn and OpenML.
 
 The wrapper extends Sklearn's `BaseSearchCV` and provides all the internal parameters that OpenML needs, such as 
 `cv_results_`, `best_index_`, `best_params_`, `best_score_` and `classes_`.
@@ -7,7 +7,7 @@ The wrapper extends Sklearn's `BaseSearchCV` and provides all the internal param
 ## Example usage
 ```python
 import openml
-from wrapper import AutoSklearnCV
+from auto_sklearn_wrapper import AutoSklearnWrapper
 from autosklearn.classification import AutoSklearnClassifier
 
 task = openml.tasks.get_task(31)
@@ -16,7 +16,7 @@ task = openml.tasks.get_task(31)
 autosklearn_clf = AutoSklearnClassifier(time_left_for_this_task=3600, per_run_time_limit=360)
 
 # Put the classifier inside the wrapper
-clf = AutoSklearnCV(autosklearn_clf)
+clf = AutoSklearnWrapper(autosklearn_clf)
 
 # Execute the task
 run = openml.runs.run_model_on_task(task, clf)

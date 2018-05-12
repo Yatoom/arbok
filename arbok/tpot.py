@@ -23,10 +23,12 @@ class TPOTWrapper(Wrapper):
 
     # Override get_params to not include config_dict
     def get_params(self, deep=True):
-        result = self.estimator.get_params(deep=True)
+
+        result = self.estimator.get_params(deep=deep)
         result['refit'] = self.refit
         result['verbose'] = self.verbose
-        del result['config_dict']
+        result['retry_on_error'] = self.retry_on_error
+        result.pop('config_dict')
         return result
 
     # Implementation of internal _fit

@@ -70,7 +70,7 @@ class Wrapper(BaseSearchCV):
         return self
 
     def get_params(self, deep=True):
-        result = self.estimator.get_params(deep=False)
+        result = self.estimator.get_params(deep=deep)
         result['refit'] = self.refit
         result['verbose'] = self.verbose
         result['retry_on_error'] = self.retry_on_error

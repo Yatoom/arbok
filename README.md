@@ -15,7 +15,6 @@ pip install arbok
 ```python
 import openml
 from arbok import AutoSklearnWrapper, TPOTWrapper
-from autosklearn.classification import AutoSklearnClassifier
 
 task = openml.tasks.get_task(31)
 

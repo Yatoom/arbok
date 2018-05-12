@@ -1,101 +1,35 @@
-from warnings import warn
-
 import numpy as np
 from autosklearn.estimators import AutoSklearnClassifier
-from sklearn.model_selection._search import BaseSearchCV
-from sklearn.utils import check_X_y
-from sklearn.utils.multiclass import unique_labels
+
+from arbok.base import Wrapper
 
 
-class AutoSklearnWrapper(BaseSearchCV):
+class AutoSklearnWrapper(Wrapper):
     def __init__(self, refit=True, verbose=False, retry_on_error=True, **params):
-
         self.estimator = AutoSklearnClassifier(**params)
-        self.verbose = verbose
-        self.refit = refit
-        self.retry_on_error = retry_on_error
-
-        # Redirect openml's call on self.best_estimator_.classes_, to self.classes_
-        self.best_estimator_ = self
-        self.classes__ = None
-
-        # Define parameters
-        self.cv_results_ = None
-        self.best_index_ = None
-        self.best_params_ = None
-        self.best_score_ = None
-        self.param_distributions = {}
 
         # Call to super
-        super(AutoSklearnWrapper, self).__init__(self.estimator)
+        super(AutoSklearnWrapper, self).__init__(estimator=self.estimator, refit=refit, verbose=verbose,
+                                                 retry_on_error=retry_on_error)
 
-    def get_params(self, deep=True):
-        result = self.estimator.get_params(deep=False)
-        result['refit'] = self.refit
-        result['verbose'] = self.verbose
-        result['retry_on_error'] = self.retry_on_error
-        # del result['config_dict']
-        return result
+    # Implementation of internal _fit
+    def _fit(self, X, y, **fit_params):
+        self.estimator.fit(X, y, **fit_params)
 
-    def set_params(self, **params):
-        params = dict(self.estimator.get_params(deep=False), **params)
-        self.estimator = self.estimator.set_params(**params)
-        return self
+    # Implementation of internal _refit
+    def _refit(self, X, y):
+        self.estimator.fit(X, y)
 
-    @property
-    def classes_(self):
-        return self.classes__
+    @staticmethod
+    def get_cv_results(estimator):
+        # Get results and convert to lists, so that it is json serializable
+        results = estimator.cv_results_
+        lists = dict([(i, j if isinstance(j, list) else j.tolist()) for i, j in results.items()])
 
-    def fit(self, X, y=None, groups=None, **fit_params):
+        # Store results
+        cv_results_ = lists
+        best_index_ = np.argmax(cv_results_['mean_test_score'])  # type: np.int64
+        best_params_ = cv_results_['params'][best_index_]
+        best_score_ = cv_results_['mean_test_score'][best_index_]
 
-        try:
-            if self.verbose:
-                print("AutoSklearnWrapper - fit")
-
-            # Check that X and y have correct shape
-            X, y = check_X_y(X, y)
-
-            # Store the classes seen during fit
-            self.classes__ = unique_labels(y)
-
-            # Fit the wrapped estimator
-            self.estimator.fit(X, y, **fit_params)
-
-            # Get results and convert to lists, so that it is json serializable
-            results = self.estimator.cv_results_
-            lists = dict([(i, j if isinstance(j, list) else j.tolist()) for i, j in results.items()])
-
-            # Store results
-            self.cv_results_ = lists
-            self.best_index_ = np.argmax(self.cv_results_['mean_test_score'])  # type: np.int64
-            self.best_params_ = self.cv_results_['params'][self.best_index_]
-            self.best_score_ = self.cv_results_['mean_test_score'][self.best_index_]
-
-            if self.refit:
-                self.estimator.refit(X, y)
-
-        except ValueError as e:
-            if self.retry_on_error:
-                warn("Fitting failed. Attempting to fit again.")
-                return self.fit(X, y)
-            raise e
-
-        return self
-
-    def predict(self, X):
-        if self.verbose:
-            print("AutoSklearnWrapper - predict")
-
-        # Check is fit had been called
-        self._check_is_fitted('predict')
-
-        return self.estimator.predict(X)
-
-    def predict_proba(self, X):
-        if self.verbose:
-            print("AutoSklearnWrapper - predict_proba")
-
-        # Check is fit had been called
-        self._check_is_fitted('predict_proba')
-
-        return self.estimator.predict_proba(X)
+        return cv_results_, best_index_, best_params_, best_score_

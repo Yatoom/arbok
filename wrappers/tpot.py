@@ -28,7 +28,7 @@ def replace_last(s, old, new):
     return s[::-1].replace(old, new, 1)[::-1]
 
 
-class TpotWrapper(BaseSearchCV):
+class TPOTWrapper(BaseSearchCV):
     def __init__(self, verbose=False, refit=True, **params):
 
         self.estimator = TPOTClassifier(**params)
@@ -47,7 +47,7 @@ class TpotWrapper(BaseSearchCV):
         self.param_distributions = {}
 
         # Call to super
-        super(TpotWrapper, self).__init__(self.estimator)
+        super(TPOTWrapper, self).__init__(self.estimator)
 
     def get_params(self, deep=True):
         result = self.estimator.get_params(deep=True)

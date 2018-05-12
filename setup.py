@@ -7,15 +7,14 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='auto-sklearn-wrapper',
-    version='0.0.6',
+    name='arbok',
+    version='0.0.7',
     packages=['wrappers'],
-    url='https://github.com/Yatoom/auto-sklearn-wrappers',
+    url='https://github.com/Yatoom/arbok',
     license='',
     author='Jeroen van Hoof',
     author_email='jeroen@jeroenvanhoof.nl',
-    description='An Auto-Sklearn Wrapper that provides a compatibility layer between Auto-Sklearn and OpenML',
+    description='A wrapper toolbox that provides compatibility layers between TPOT and Auto-Sklearn and OpenML',
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    install_requires=["sklearn", "numpy"]
+    install_requires=["sklearn", "auto-sklearn", "tpot", "numpy"]
 )

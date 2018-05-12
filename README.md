@@ -1,27 +1,29 @@
-# AutoSklearn wrapper
-This is a wrapper that provides a compatibility layer between Auto-Sklearn and OpenML.
+# Arbok
+
+Arbok (**A**utoml w**r**apper tool**b**ox for **o**penml **c**ompatibility) provides wrappers 
+for TPOT and Auto-Sklearn, as a compatibility layer between these tools and OpenML.
 
 The wrapper extends Sklearn's `BaseSearchCV` and provides all the internal parameters that OpenML needs, such as 
 `cv_results_`, `best_index_`, `best_params_`, `best_score_` and `classes_`.
 
 ## Installation
 ```
-pip install auto-sklearn-wrapper
+pip install arbok
 ```
 
 ## Example usage
 ```python
 import openml
-from autosklearnwrapper import AutoSklearnWrapper
+from arbok import AutoSklearnWrapper, TPOTWrapper
 from autosklearn.classification import AutoSklearnClassifier
 
 task = openml.tasks.get_task(31)
 
-# Instantiate an AutoSklearn Classifier like usual
-autosklearn_clf = AutoSklearnClassifier(time_left_for_this_task=3600, per_run_time_limit=360)
+# Get the AutoSklearn wrapper and pass parameters like you would to AutoSklearn
+clf = AutoSklearnWrapper(time_left_for_this_task=25, per_run_time_limit=5)
 
-# Put the classifier inside the wrapper
-clf = AutoSklearnWrapper(autosklearn_clf)
+# Or get the TPOT wrapper and pass parameters like you would to TPOT
+clf = TPOTWrapper(generations=2, population_size=2, verbosity=2)
 
 # Execute the task
 run = openml.runs.run_model_on_task(task, clf)

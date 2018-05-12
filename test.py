@@ -10,7 +10,7 @@ from wrappers.tpot import TpotWrapper
 task = openml.tasks.get_task(31)
 
 # clf = AutoSklearnWrapper(AutoSklearnClassifier(time_left_for_this_task=25, per_run_time_limit=5))
-clf = TpotWrapper()
+clf = TpotWrapper(generations=2, population_size=2, verbosity=2, refit=True, verbose=False)
 
 # Execute the task
 run = openml.runs.run_model_on_task(task, clf)

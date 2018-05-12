@@ -8,6 +8,13 @@ from sklearn.utils.multiclass import unique_labels
 class Wrapper(BaseSearchCV):
     def __init__(self, estimator, refit=True, verbose=False, retry_on_error=True):
 
+        # Call to super
+        super(Wrapper, self).__init__(self.estimator)
+
+        print("verbose", verbose)
+        if verbose == 0:
+            raise ValueError("verbose not set correctly")
+
         self.retry_on_error = retry_on_error
         self.estimator = estimator
         self.verbose = verbose
@@ -23,9 +30,6 @@ class Wrapper(BaseSearchCV):
         self.best_params_ = None
         self.best_score_ = None
         self.param_distributions = {}
-
-        # Call to super
-        super(Wrapper, self).__init__(self.estimator)
 
     @property
     def classes_(self):
@@ -69,10 +73,14 @@ class Wrapper(BaseSearchCV):
         result = self.estimator.get_params(deep=False)
         result['refit'] = self.refit
         result['verbose'] = self.verbose
+        result['retry_on_error'] = self.retry_on_error
         return result
 
     def set_params(self, **params):
-        params = dict(self.estimator.get_params(deep=False), **params)
+        params = dict(self.get_params(), **params)
+        self.refit = params.pop('refit')
+        self.verbose = params.pop('verbose')
+        self.retry_on_error = params.pop('retry_on_error')
         self.estimator = self.estimator.set_params(**params)
         return self
 

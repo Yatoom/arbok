@@ -6,6 +6,7 @@ from arbok.base import Wrapper
 
 class AutoSklearnWrapper(Wrapper):
     def __init__(self, refit=True, verbose=False, retry_on_error=True, **params):
+
         self.estimator = AutoSklearnClassifier(**params)
 
         # Call to super
@@ -21,7 +22,7 @@ class AutoSklearnWrapper(Wrapper):
         self.estimator.fit(X, y)
 
     @staticmethod
-    def get_cv_results(estimator):
+    def _get_cv_results(estimator):
         # Get results and convert to lists, so that it is json serializable
         results = estimator.cv_results_
         lists = dict([(i, j if isinstance(j, list) else j.tolist()) for i, j in results.items()])

@@ -1,14 +1,16 @@
 from warnings import warn
 
 import numpy as np
+from autosklearn.estimators import AutoSklearnClassifier
 from sklearn.model_selection._search import BaseSearchCV
 from sklearn.utils import check_X_y
 from sklearn.utils.multiclass import unique_labels
 
 
 class AutoSklearnWrapper(BaseSearchCV):
-    def __init__(self, estimator, refit=True, verbose=False, retry_on_error=True):
+    def __init__(self, refit=True, verbose=False, retry_on_error=True, **params):
 
+        self.estimator = AutoSklearnClassifier(**params)
         self.verbose = verbose
         self.refit = refit
         self.retry_on_error = retry_on_error
@@ -25,7 +27,20 @@ class AutoSklearnWrapper(BaseSearchCV):
         self.param_distributions = {}
 
         # Call to super
-        super(AutoSklearnWrapper, self).__init__(estimator)
+        super(AutoSklearnWrapper, self).__init__(self.estimator)
+
+    def get_params(self, deep=True):
+        result = self.estimator.get_params(deep=False)
+        result['refit'] = self.refit
+        result['verbose'] = self.verbose
+        result['retry_on_error'] = self.retry_on_error
+        # del result['config_dict']
+        return result
+
+    def set_params(self, **params):
+        params = dict(self.estimator.get_params(deep=False), **params)
+        self.estimator = self.estimator.set_params(**params)
+        return self
 
     @property
     def classes_(self):

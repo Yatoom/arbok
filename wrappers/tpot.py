@@ -30,28 +30,8 @@ def replace_last(s, old, new):
 
 class TpotWrapper(BaseSearchCV):
     def __init__(self, verbose=False, refit=True, **params):
-        # def __init__(self, generations=100, population_size=100, offspring_size=None,
-        #              mutation_rate=0.9, crossover_rate=0.1,
-        #              scoring=None, cv=5, subsample=1.0, n_jobs=1,
-        #              max_time_mins=5, max_eval_time_mins=5,
-        #              random_state=None, config_dict=None,
-        #              warm_start=False, memory=None,
-        #              periodic_checkpoint_folder=None, early_stop=None,
-        #              verbosity=0, disable_update_check=False, verbose=False, refit=True):
-        print(params['population_size'])
-        self.estimator = TPOTClassifier(**params)
-        # print(max_eval_time_mins)
-        # self.estimator = None
-        # self.set_params(generations=generations, population_size=population_size,
-        #                 offspring_size=offspring_size,
-        #                 mutation_rate=mutation_rate, crossover_rate=crossover_rate,
-        #                 scoring=scoring, cv=cv, subsample=subsample, n_jobs=n_jobs,
-        #                 max_time_mins=max_time_mins, max_eval_time_mins=max_eval_time_mins,
-        #                 random_state=random_state, config_dict=config_dict,
-        #                 warm_start=warm_start, memory=memory,
-        #                 periodic_checkpoint_folder=periodic_checkpoint_folder, early_stop=early_stop,
-        #                 verbosity=verbosity, disable_update_check=disable_update_check)
 
+        self.estimator = TPOTClassifier(**params)
         self.verbose = verbose
         self.refit = refit
 
@@ -70,15 +50,14 @@ class TpotWrapper(BaseSearchCV):
         super(TpotWrapper, self).__init__(self.estimator)
 
     def get_params(self, deep=True):
-        result = self.estimator.get_params(deep=False)
+        result = self.estimator.get_params(deep=True)
         result['refit'] = self.refit
         result['verbose'] = self.verbose
         del result['config_dict']
-        print("get params", result['population_size'])
         return result
 
     def set_params(self, **params):
-        params = dict(self.estimator.get_params(deep=False), **params)
+        params = dict(self.estimator.get_params(deep=True), **params)
         self.estimator = self.estimator.set_params(**params)
         return self
 

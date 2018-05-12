@@ -12,7 +12,7 @@ pip install auto-sklearn-wrapper
 ## Example usage
 ```python
 import openml
-from auto_sklearn_wrapper import AutoSklearnWrapper
+from autosklearnwrapper import AutoSklearnWrapper
 from autosklearn.classification import AutoSklearnClassifier
 
 task = openml.tasks.get_task(31)

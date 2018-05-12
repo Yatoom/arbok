@@ -9,8 +9,8 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='auto-sklearn-wrapper',
     version='0.0.6',
-    packages=['auto_sklearn_wrapper'],
-    url='https://github.com/Yatoom/auto-sklearn-auto_sklearn_wrapper',
+    packages=['wrappers'],
+    url='https://github.com/Yatoom/auto-sklearn-wrappers',
     license='',
     author='Jeroen van Hoof',
     author_email='jeroen@jeroenvanhoof.nl',

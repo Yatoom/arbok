@@ -13,7 +13,7 @@ Installation
 
 ::
 
-    pip install auto-sklearn-wrapper
+    pip install autosklearnwrapper
 
 Example usage
 -------------

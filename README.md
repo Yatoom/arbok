@@ -14,15 +14,42 @@ pip install arbok
 ## Example usage
 ```python
 import openml
-from arbok import AutoSklearnWrapper, TPOTWrapper
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import OneHotEncoder
+
+from arbok import AutoSklearnWrapper, TPOTWrapper, ConditionalImputer
+
 
 task = openml.tasks.get_task(31)
+dataset = task.get_dataset()
+_, categorical, names = dataset.get_data(
+    return_categorical_indicator=True, 
+    return_attribute_names=True
+)
+mask = categorical[:-1]  # Remove last index (which is the class)
+
+# Optionally create a preprocessor that fixes missing data and one hot encodes 
+# categorical values.
+preprocessor = make_pipeline(
+
+    # Imputer that uses different strategies for categorical and numerical data
+    ConditionalImputer(
+        categorical_features=mask
+    ),
+    OneHotEncoder(
+        categorical_features=mask, handle_unknown="ignore", sparse=False
+    )
+)
 
 # Get the AutoSklearn wrapper and pass parameters like you would to AutoSklearn
-clf = AutoSklearnWrapper(time_left_for_this_task=25, per_run_time_limit=5)
+clf = AutoSklearnWrapper(
+    preprocessor=preprocessor, time_left_for_this_task=25, per_run_time_limit=5
+)
 
 # Or get the TPOT wrapper and pass parameters like you would to TPOT
-clf = TPOTWrapper(generations=2, population_size=2, verbosity=2)
+clf = TPOTWrapper(
+    preprocessor=preprocessor, generations=2, population_size=2, verbosity=2
+)
 
 # Execute the task
 run = openml.runs.run_model_on_task(task, clf)

@@ -11,44 +11,23 @@ The wrapper extends Sklearn's `BaseSearchCV` and provides all the internal param
 pip install arbok
 ```
 
-## Example usage
+## Simple example
 ```python
 import openml
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import OneHotEncoder
-
-from arbok import AutoSklearnWrapper, TPOTWrapper, ConditionalImputer
+from arbok import AutoSklearnWrapper, TPOTWrapper
 
 
 task = openml.tasks.get_task(31)
 dataset = task.get_dataset()
-_, categorical, names = dataset.get_data(
-    return_categorical_indicator=True, 
-    return_attribute_names=True
-)
-mask = categorical[:-1]  # Remove last index (which is the class)
-
-# Optionally create a preprocessor that fixes missing data and one hot encodes 
-# categorical values.
-preprocessor = make_pipeline(
-
-    # Imputer that uses different strategies for categorical and numerical data
-    ConditionalImputer(
-        categorical_features=mask
-    ),
-    OneHotEncoder(
-        categorical_features=mask, handle_unknown="ignore", sparse=False
-    )
-)
 
 # Get the AutoSklearn wrapper and pass parameters like you would to AutoSklearn
 clf = AutoSklearnWrapper(
-    preprocessor=preprocessor, time_left_for_this_task=25, per_run_time_limit=5
+    time_left_for_this_task=3600, per_run_time_limit=360
 )
 
 # Or get the TPOT wrapper and pass parameters like you would to TPOT
 clf = TPOTWrapper(
-    preprocessor=preprocessor, generations=2, population_size=2, verbosity=2
+    generations=100, population_size=100, verbosity=2
 )
 
 # Execute the task
@@ -57,3 +36,49 @@ run.publish()
 
 print('URL for run: %s/run/%d' % (openml.config.server, run.run_id))
 ```
+
+## Preprocessing data
+To make the wrapper more robust, we need to preprocess the data. We can fill the missing values, 
+and one-hot encode categorical data. 
+
+First, we get a mask that tells us whether a feature is a categorical feature or not.
+
+```python
+dataset = task.get_dataset()
+_, categorical = dataset.get_data(return_categorical_indicator=True)
+categorical = categorical[:-1]  # Remove last index (which is the class)
+```
+
+Next, we setup a pipeline for the preprocessing. We are using a `ConditionalImputer`, 
+which is an imputer which is able to use different strategies for categorical (nominal) and numerical data.
+
+```python
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import OneHotEncoder
+from arbok import ConditionalImputer
+
+preprocessor = make_pipeline(
+
+    ConditionalImputer(
+        categorical_features=categorical,
+        strategy="mean",
+        strategy_nominal="most_frequent"
+    ),
+    
+    OneHotEncoder(
+        categorical_features=categorical, handle_unknown="ignore", sparse=False
+    )
+)
+```
+
+And finally, we put everything together in one of the wrappers.
+
+```python
+clf = AutoSklearnWrapper(
+    preprocessor=preprocessor, time_left_for_this_task=3600, per_run_time_limit=360
+)
+```
+
+## Limitations
+- Currently only the classifiers are implemented. Regression is therefore not possible.
+- For TPOT, the `config_dict` variable can not be set, because this causes problems with the API.

@@ -12,22 +12,19 @@ from arbok.base import Wrapper
 
 
 class TPOTWrapper(Wrapper):
-    def __init__(self, refit=True, verbose=False, retry_on_error=True, **params):
+    def __init__(self, preprocessor=None, refit=True, verbose=False, retry_on_error=True, **params):
 
         # Create estimator
         self.estimator = TPOTClassifier(**params)
 
         # Call to super
-        super(TPOTWrapper, self).__init__(estimator=self.estimator, refit=refit, verbose=verbose,
+        super(TPOTWrapper, self).__init__(estimator=self.estimator, preprocessor=preprocessor, refit=refit,
+                                          verbose=verbose,
                                           retry_on_error=retry_on_error)
 
     # Override get_params to not include config_dict
     def get_params(self, deep=True):
-
-        result = self.estimator.get_params(deep=deep)
-        result['refit'] = self.refit
-        result['verbose'] = self.verbose
-        result['retry_on_error'] = self.retry_on_error
+        result = super(TPOTWrapper, self).get_params(deep=deep)
         result.pop('config_dict')
         return result
 

@@ -1,4 +1,4 @@
 from arbok.autosklearn import AutoSklearnWrapper
 from arbok.tpot import TPOTWrapper
 
-__version__ = 0.5
+__version__ = 0.6

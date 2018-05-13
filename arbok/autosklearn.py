@@ -5,12 +5,12 @@ from arbok.base import Wrapper
 
 
 class AutoSklearnWrapper(Wrapper):
-    def __init__(self, refit=True, verbose=False, retry_on_error=True, **params):
-
+    def __init__(self, preprocessor=None, refit=True, verbose=False, retry_on_error=True, **params):
         self.estimator = AutoSklearnClassifier(**params)
 
         # Call to super
-        super(AutoSklearnWrapper, self).__init__(estimator=self.estimator, refit=refit, verbose=verbose,
+        super(AutoSklearnWrapper, self).__init__(estimator=self.estimator, preprocessor=preprocessor, refit=refit,
+                                                 verbose=verbose,
                                                  retry_on_error=retry_on_error)
 
     # Implementation of internal _fit

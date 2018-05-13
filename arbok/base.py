@@ -3,10 +3,11 @@ from warnings import warn
 from sklearn.model_selection._search import BaseSearchCV
 from sklearn.utils import check_X_y
 from sklearn.utils.multiclass import unique_labels
+import numpy as np
 
 
 class Wrapper(BaseSearchCV):
-    def __init__(self, estimator, refit=True, verbose=False, retry_on_error=True):
+    def __init__(self, estimator, preprocessor=None, refit=True, verbose=False, retry_on_error=True):
 
         # Call to super
         super(Wrapper, self).__init__(self.estimator)
@@ -19,6 +20,7 @@ class Wrapper(BaseSearchCV):
         self.estimator = estimator
         self.verbose = verbose
         self.refit = refit
+        self.preprocessor = preprocessor
 
         # Redirect openml's call on self.best_estimator_.classes_, to self.classes_
         self.best_estimator_ = self
@@ -43,12 +45,15 @@ class Wrapper(BaseSearchCV):
         # Store the classes seen during fit
         self.classes__ = unique_labels(y)
 
+        print(X)
+        X_ = self.preprocessor.fit_transform(X) if self.preprocessor else X
+
         try:
             if self.verbose:
                 print("Wrapper - fit")
 
             # Fit the wrapped estimator
-            self._fit(X, y, **fit_params)
+            self._fit(X_, y, **fit_params)
 
             # Store results
             cv_results_, best_index_, best_params_, best_score_ = self._get_cv_results(self.estimator)
@@ -59,12 +64,12 @@ class Wrapper(BaseSearchCV):
 
             # Refit
             if self.refit:
-                self._refit(X, y)
+                self._refit(X_, y)
 
         except ValueError as e:
             if self.retry_on_error:
                 warn("Fitting failed. Attempting to fit again.")
-                return self.fit(X, y)
+                return self.fit(X_, y)
             raise e
 
         return self
@@ -74,6 +79,7 @@ class Wrapper(BaseSearchCV):
         result['refit'] = self.refit
         result['verbose'] = self.verbose
         result['retry_on_error'] = self.retry_on_error
+        result['preprocessor'] = self.preprocessor
         return result
 
     def set_params(self, **params):
@@ -81,6 +87,7 @@ class Wrapper(BaseSearchCV):
         self.refit = params.pop('refit')
         self.verbose = params.pop('verbose')
         self.retry_on_error = params.pop('retry_on_error')
+        self.preprocessor = params.pop('preprocessor')
         self.estimator = self.estimator.set_params(**params)
         return self
 
@@ -91,7 +98,8 @@ class Wrapper(BaseSearchCV):
         # Check is fit had been called
         self._check_is_fitted('predict')
 
-        return self.estimator.predict(X)
+        X_ = self.preprocessor.transform(X) if self.preprocessor else X
+        return self.estimator.predict(X_)
 
     def predict_proba(self, X):
         if self.verbose:
@@ -100,7 +108,8 @@ class Wrapper(BaseSearchCV):
         # Check is fit had been called
         self._check_is_fitted('predict_proba')
 
-        return self.estimator.predict_proba(X)
+        X_ = self.preprocessor.transform(X) if self.preprocessor else X
+        return self.estimator.predict_proba(X_)
 
     @staticmethod
     def _get_cv_results(estimator):

@@ -54,7 +54,7 @@ class Benchmark:
             # subprocess.call(["qsub", f"jobs/{file}"])
         return self
 
-    def create_job(self, task_id, clf_name, preprocessor="default"):
+    def create_job(self, task_id, clf_name, preprocessor="default", log="log.json"):
         with open(f"jobs/{clf_name}_{task_id}.sh", "w+") as f:
             f.write(self.headers + "\n")
             # f.write(f"{self.python_interpreter} {self.project_root}/arbok/bench.py {clf_name} ")
@@ -63,6 +63,7 @@ class Benchmark:
             f.write(f"--task-id {task_id} ")
             f.write(f"--config {self.config_file} ")
             f.write(f"--preprocessor {preprocessor} ")
+            f.write(f"--log {log} ")
         return self
 
     @staticmethod
@@ -114,7 +115,7 @@ class Benchmark:
         run = openml.runs.run_model_on_task(task, clf)
         run.publish()
 
-        print('URL for run: %s/run/%d' % (openml.config.server, run.run_id))
+        return run.run_id, f"{openml.config.server}/json/run/{run.run_id}"
 
 
 @click.command()
@@ -123,7 +124,8 @@ class Benchmark:
 @click.option('--config', default='config.json', help="A JSON configuration file for the classifiers and wrappers.")
 @click.option('--preprocessor', default='default', help="Specify the preprocessor.")
 @click.option('--apikey', default=None, help="Set the OpenML API Key which is required to upload the runs.")
-def cli(classifier, task_id, config, preprocessor, apikey):
+@click.option('--log', default='log.json', help="File to store the JSON retrieved from the server.")
+def cli(classifier, task_id, config, preprocessor, apikey, log):
     if not task_id:
         raise ClickException("Please specify a task id.")
     elif not os.path.isfile(config):
@@ -137,4 +139,13 @@ def cli(classifier, task_id, config, preprocessor, apikey):
     wrapper = cfg['wrapper']
 
     print(f"Running {classifier} on task {task_id}.")
-    Benchmark.run_job(classifier, task_id, wrapper, tpot, autosklearn, preprocessor, apikey=apikey)
+    id, output = Benchmark.run_job(classifier, task_id, wrapper, tpot, autosklearn, preprocessor, apikey=apikey)
+
+    # Store output
+    with open(log) as f:
+        data = json.load(f)
+
+    data.update({id: output})
+
+    with open(log, 'w') as f:
+        json.dump(data, f)

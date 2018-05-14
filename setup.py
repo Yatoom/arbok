@@ -8,7 +8,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='arbok',
-    version='0.0.7',
+    version='0.0.8',
     packages=['arbok'],
     url='https://github.com/Yatoom/arbok',
     license='',

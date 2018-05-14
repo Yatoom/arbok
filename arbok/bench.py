@@ -58,7 +58,7 @@ class Benchmark:
         with open(f"jobs/{clf_name}_{task_id}.sh", "w+") as f:
             f.write(self.headers + "\n")
             # f.write(f"{self.python_interpreter} {self.project_root}/arbok/bench.py {clf_name} ")
-            f.write(f"{self.python_interpreter} -m arbench ")
+            f.write(f"{self.python_interpreter} -m arbok ")
             f.write(f"--classifier {clf_name} ")
             f.write(f"--task-id {task_id} ")
             f.write(f"--config {self.config_file} ")
@@ -142,8 +142,10 @@ def cli(classifier, task_id, config, preprocessor, apikey, log):
     id, output = Benchmark.run_job(classifier, task_id, wrapper, tpot, autosklearn, preprocessor, apikey=apikey)
 
     # Store output
-    with open(log) as f:
-        data = json.load(f)
+    data = {}
+    if os.path.isfile(log):
+        with open(log, 'r+') as f:
+            data = json.load(f)
 
     data.update({id: output})
 

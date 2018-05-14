@@ -116,6 +116,10 @@ And then, we can call arbench like this:
 ```bash
 arbench --classifier autosklearn --task-id 31 --config config.json
 ```
+Or calling arbok as a python module:
+```bash
+python -m arbok --classifier autosklearn --task-id 31 --config config.json
+``` 
 
 ## Running a benchmark on batch systems
 To run a large scale benchmark, we can create a configuration file like above, 

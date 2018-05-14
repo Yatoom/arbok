@@ -91,9 +91,74 @@ And finally, we put everything together in one of the wrappers.
     )
 
 Limitations
------------
+~~~~~~~~~~~
 
 -  Currently only the classifiers are implemented. Regression is
    therefore not possible.
 -  For TPOT, the ``config_dict`` variable can not be set, because this
    causes problems with the API.
+
+Benchmarking
+------------
+
+Installing the ``arbok`` package includes the ``arbench`` cli tool. We
+can generate a json file like this:
+
+.. code:: python
+
+    from arbok.bench import Benchmark
+
+    config_file = Benchmark.create_config_file(
+        
+        # Output file
+        file_name="config.json",
+        
+        # Wrapper parameters
+        wrapper={"refit": True, "verbose": False, "retry_on_error": True},
+        
+        # TPOT parameters
+        tpot={
+            "max_time_mins": 6,              # Max total time in minutes
+            "max_eval_time_mins": 1          # Max time per candidate in minutes
+        },
+        
+        # Autosklearn parameters
+        autosklearn={
+            "time_left_for_this_task": 360,  # Max total time in seconds
+            "per_run_time_limit": 60         # Max time per candidate in seconds
+        }
+    )
+
+And then, we can call arbench like this:
+
+.. code:: bash
+
+    arbench --classifier autosklearn --task-id 31 --config config.json
+
+Running a benchmark on batch systems
+------------------------------------
+
+To run a large scale benchmark, we can create a configuration file like
+above, and generate and submit jobs to a batch system as follows.
+
+.. code:: python
+
+    # We create a benchmark setup where we specify the headers, the interpreter we
+    # want to use, the directory to where we store the jobs (.sh-files), and we give
+    # it the config-file we created earlier.
+    bench = Benchmark(
+        headers="#PBS -lnodes=1:cpu3\n#PBS -lwalltime=1:30:00",
+        python_interpreter="python3",  # Path to interpreter
+        jobs_dir="jobs",
+        config_file=config_file
+    )
+
+    # Next, we load the tasks we want to benchmark on from OpenML.
+    # In this case, we load a list of task id's from study 99.
+    tasks = openml.study.get_study(99).tasks
+
+    # Next, we create jobs for both tpot and autosklearn.
+    bench.create_jobs(tasks, classifiers=["tpot", "autosklearn"])
+
+    # And finally, we submit the jobs using qsub
+    bench.submit_jobs()

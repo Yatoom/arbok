@@ -12,10 +12,8 @@ from arbok import TPOTWrapper, AutoSklearnWrapper, ConditionalImputer
 
 class Benchmark:
 
-    def __init__(self, headers, python_interpreter, project_root,
-                 jobs_dir="jobs", config_dir=".", config_file="config.json"):
+    def __init__(self, headers, python_interpreter, jobs_dir="jobs", config_file="config.json"):
         self.python_interpreter = python_interpreter
-        self.project_root = project_root
         self.jobs_dir = jobs_dir
         self.config_file = config_file
         self.headers = headers
@@ -39,7 +37,7 @@ class Benchmark:
         study = openml.study.get_study(study_id)
         return study.tasks
 
-    def create_jobs_for_study(self, tasks, classifiers=None):
+    def create_jobs(self, tasks, classifiers=None):
         if classifiers is None:
             classifiers = ["tpot", "autosklearn"]
 
@@ -98,7 +96,10 @@ class Benchmark:
         return preprocessor
 
     @staticmethod
-    def run_job(clf_name, task_id, wrapper_config, tpot_config, autosklearn_config, preprocessor):
+    def run_job(clf_name, task_id, wrapper_config, tpot_config, autosklearn_config, preprocessor, apikey=None):
+
+        if apikey:
+            openml.config.apikey = apikey
 
         preprocessor = Benchmark.get_preprocessor(task_id, name=preprocessor)
 
@@ -121,8 +122,8 @@ class Benchmark:
 @click.option('--task-id', help="An id of an OpenMl task.")
 @click.option('--config', default='config.json', help="A JSON configuration file for the classifiers and wrappers.")
 @click.option('--preprocessor', default='default', help="Specify the preprocessor.")
-def cli(classifier, task_id, config, preprocessor):
-
+@click.option('--apikey', default=None, help="Set the OpenML API Key which is required to upload the runs.")
+def cli(classifier, task_id, config, preprocessor, apikey):
     if not task_id:
         raise ClickException("Please specify a task id.")
     elif not os.path.isfile(config):
@@ -136,4 +137,4 @@ def cli(classifier, task_id, config, preprocessor):
     wrapper = cfg['wrapper']
 
     print(f"Running {classifier} on task {task_id}.")
-    Benchmark.run_job(classifier, task_id, wrapper, tpot, autosklearn, preprocessor)
+    Benchmark.run_job(classifier, task_id, wrapper, tpot, autosklearn, preprocessor, apikey=apikey)

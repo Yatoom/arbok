@@ -3,7 +3,6 @@ from warnings import warn
 from sklearn.model_selection._search import BaseSearchCV
 from sklearn.utils import check_X_y
 from sklearn.utils.multiclass import unique_labels
-import numpy as np
 
 
 class Wrapper(BaseSearchCV):
@@ -11,10 +10,6 @@ class Wrapper(BaseSearchCV):
 
         # Call to super
         super(Wrapper, self).__init__(self.estimator)
-
-        print("verbose", verbose)
-        if verbose == 0:
-            raise ValueError("verbose not set correctly")
 
         self.retry_on_error = retry_on_error
         self.estimator = estimator
@@ -45,7 +40,6 @@ class Wrapper(BaseSearchCV):
         # Store the classes seen during fit
         self.classes__ = unique_labels(y)
 
-        print(X)
         X_ = self.preprocessor.fit_transform(X) if self.preprocessor else X
 
         try:

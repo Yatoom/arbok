@@ -8,7 +8,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='arbok',
-    version='0.0.8',
+    version='0.0.9',
     packages=['arbok'],
     url='https://github.com/Yatoom/arbok',
     license='',
@@ -16,5 +16,10 @@ setup(
     author_email='jeroen@jeroenvanhoof.nl',
     description='A wrapper toolbox that provides compatibility layers between TPOT and Auto-Sklearn and OpenML',
     long_description=long_description,
-    install_requires=["sklearn", "auto-sklearn", "tpot", "numpy"]
+    install_requires=["sklearn", "auto-sklearn", "tpot", "numpy", "click"],
+    entry_points={
+        'console_scripts': [
+            'arbench = arbok.bench:cli',
+        ],
+    }
 )

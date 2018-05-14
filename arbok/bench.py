@@ -6,6 +6,7 @@ import openml
 from click import ClickException
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder
+import subprocess
 
 from arbok import TPOTWrapper, AutoSklearnWrapper, ConditionalImputer
 
@@ -51,7 +52,7 @@ class Benchmark:
         files = [f for f in os.listdir("jobs/") if os.path.isfile(os.path.join("jobs/", f))]
         for file in files:
             print(f"Submitting jobs/{file}")
-            # subprocess.call(["qsub", f"jobs/{file}"])
+            subprocess.call(["qsub", f"jobs/{file}"])
         return self
 
     def create_job(self, task_id, clf_name, preprocessor="default", log="log.json"):

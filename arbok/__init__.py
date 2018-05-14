@@ -3,4 +3,4 @@ from arbok.tpot import TPOTWrapper
 from arbok.preprocessing import ConditionalImputer
 from arbok.bench import Benchmark
 
-__version__ = 1.0
+__version__ = 1.1

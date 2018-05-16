@@ -34,13 +34,13 @@ class Wrapper(BaseSearchCV):
 
     def fit(self, X, y=None, groups=None, **fit_params):
 
-        # Check that X and y have correct shape
-        X, y = check_X_y(X, y)
-
         # Store the classes seen during fit
         self.classes__ = unique_labels(y)
 
         X_ = self.preprocessor.fit_transform(X) if self.preprocessor else X
+
+        # Check that X and y have correct shape
+        X, y = check_X_y(X_, y)
 
         try:
             if self.verbose:

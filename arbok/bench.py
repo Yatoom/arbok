@@ -1,42 +1,44 @@
 import json
 import os
+import subprocess
 
 import click
 import openml
 from click import ClickException
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder
-import subprocess
 
 from arbok import TPOTWrapper, AutoSklearnWrapper, ConditionalImputer
 
 
 class Benchmark:
 
-    def __init__(self, headers, python_interpreter, jobs_dir="jobs", config_file="config.json"):
+    def __init__(self, headers="", python_interpreter="python", root="", jobs_dir="jobs", config_file="config.json",
+                 log_file="log.json"):
+
+        # Accept parameters
         self.python_interpreter = python_interpreter
-        self.jobs_dir = jobs_dir
-        self.config_file = config_file
+        self.root = root
         self.headers = headers
 
-        if not os.path.exists(jobs_dir):
-            os.makedirs(jobs_dir)
+        # Merge root and file locations
+        self.jobs_dir = os.path.join(root, jobs_dir)
+        self.config_file = os.path.join(root, config_file)
+        self.log_file = os.path.join(root, log_file)
 
-    @staticmethod
-    def create_config_file(file_name, tpot, autosklearn, wrapper):
-        with open(file_name, "w+") as f:
+        # Create jobs directory if it does not exist
+        if not os.path.exists(self.jobs_dir):
+            os.makedirs(self.jobs_dir)
+
+    def create_config_file(self, tpot, autosklearn, wrapper):
+        with open(self.config_file, "w+") as f:
             json.dump({
                 "tpot": tpot,
                 "autosklearn": autosklearn,
                 "wrapper": wrapper,
             }, f, indent=4, sort_keys=True)
 
-        return file_name
-
-    @staticmethod
-    def get_tasks_for_study(study_id):
-        study = openml.study.get_study(study_id)
-        return study.tasks
+        return self.config_file
 
     def create_jobs(self, tasks, classifiers=None):
         if classifiers is None:
@@ -48,23 +50,28 @@ class Benchmark:
 
         return self
 
-    def submit_jobs(self):
-        files = [f for f in os.listdir("jobs/") if os.path.isfile(os.path.join("jobs/", f))]
-        for file in files:
-            print(f"Submitting jobs/{file}")
-            subprocess.call(["qsub", f"jobs/{file}"])
-        return self
-
-    def create_job(self, task_id, clf_name, preprocessor="default", log="log.json"):
-        with open(f"jobs/{clf_name}_{task_id}.sh", "w+") as f:
+    def create_job(self, task_id, clf_name, preprocessor="default"):
+        filepath = os.path.join(self.jobs_dir, f"{clf_name}_{task_id}.sh")
+        with open(filepath, "w+") as f:
             f.write(self.headers + "\n")
-            # f.write(f"{self.python_interpreter} {self.project_root}/arbok/bench.py {clf_name} ")
             f.write(f"{self.python_interpreter} -m arbok ")
             f.write(f"--classifier {clf_name} ")
             f.write(f"--task-id {task_id} ")
             f.write(f"--config {self.config_file} ")
             f.write(f"--preprocessor {preprocessor} ")
-            f.write(f"--log {log} ")
+            f.write(f"--log {self.log_file} ")
+        return self
+
+    @staticmethod
+    def get_tasks_for_study(study_id):
+        study = openml.study.get_study(study_id)
+        return study.tasks
+
+    def submit_jobs(self):
+        files = [f for f in os.listdir(self.jobs_dir) if os.path.isfile(os.path.join(self.jobs_dir, f))]
+        for file in files:
+            output = subprocess.check_output(["qsub", os.path.join("jobs", file)])
+            print(output)
         return self
 
     @staticmethod

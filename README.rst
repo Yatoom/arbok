@@ -107,12 +107,9 @@ can generate a json file like this:
 .. code:: python
 
     from arbok.bench import Benchmark
-
-    config_file = Benchmark.create_config_file(
-        
-        # Output file
-        file_name="config.json",
-        
+    bench = Benchmark()
+    config_file = bench.create_config_file(
+           
         # Wrapper parameters
         wrapper={"refit": True, "verbose": False, "retry_on_error": True},
         
@@ -155,8 +152,29 @@ above, and generate and submit jobs to a batch system as follows.
     bench = Benchmark(
         headers="#PBS -lnodes=1:cpu3\n#PBS -lwalltime=1:30:00",
         python_interpreter="python3",  # Path to interpreter
+        root="/path/to/project/",
         jobs_dir="jobs",
-        config_file=config_file
+        config_file="config.json",
+        log_file="log.json"
+    )
+
+    # Create the config file like we did in the section above
+    config_file = bench.create_config_file(
+           
+        # Wrapper parameters
+        wrapper={"refit": True, "verbose": False, "retry_on_error": True},
+        
+        # TPOT parameters
+        tpot={
+            "max_time_mins": 6,              # Max total time in minutes
+            "max_eval_time_mins": 1          # Max time per candidate in minutes
+        },
+        
+        # Autosklearn parameters
+        autosklearn={
+            "time_left_for_this_task": 360,  # Max total time in seconds
+            "per_run_time_limit": 60         # Max time per candidate in seconds
+        }
     )
 
     # Next, we load the tasks we want to benchmark on from OpenML.

@@ -114,8 +114,10 @@ class Benchmark:
 
         if clf_name == "tpot":
             clf = TPOTWrapper(preprocessor=preprocessor, **wrapper_config, **tpot_config)
+            print(f"TPOTWrapper(preprocessor={preprocessor}, {wrapper_config}, {tpot_config})")
         elif clf_name == "autosklearn":
             clf = AutoSklearnWrapper(preprocessor=preprocessor, **wrapper_config, **autosklearn_config)
+            print(f"AutoSklearnWrapper(preprocessor={preprocessor}, {wrapper_config}, {autosklearn_config})")
         else:
             raise ValueError(f"Classifier name {clf_name} unknown")
 
@@ -134,6 +136,10 @@ class Benchmark:
 @click.option('--apikey', default=None, help="Set the OpenML API Key which is required to upload the runs.")
 @click.option('--log', default='log.json', help="File to store the JSON retrieved from the server.")
 def cli(classifier, task_id, config, preprocessor, apikey, log):
+    run(classifier, task_id, config, preprocessor, apikey, log)
+
+
+def run(classifier, task_id, config, preprocessor, apikey, log):
     if not task_id:
         raise ClickException("Please specify a task id.")
     elif not os.path.isfile(config):

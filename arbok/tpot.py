@@ -1,5 +1,6 @@
 import collections
 import re
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -64,6 +65,15 @@ class TPOTWrapper(Wrapper):
         config = TPOTWrapper._flatten(classifier.classifier_config_dict, parent_key="", sep="__")
         config_keys = list(config.keys())
 
+        # Instead of, for example, RFE__estimator__ExtratreesClassifier__n_estimators,
+        # TPOT uses RFE__ExtratreesClassifier__n_estimators, so we need to replace those.
+        config_keys = [i.replace("__estimator__", "__") for i in config_keys]
+
+        # Show a warning if we're adding new keys.
+        unknown_keys = [i for i in columns if i not in config_keys]
+        if len(unknown_keys) > 0:
+            warnings.warn(f"Unknown keys: {unknown_keys}")
+
         for i in config_keys:
             if i not in columns:
                 dataframe[i] = np.nan
@@ -79,6 +89,7 @@ class TPOTWrapper(Wrapper):
 
         # Add the mean test score
         scores = list(individuals.values())
+        scores = [max(0, i) for i in scores]  # Remove -inf's as OpenML can't deal with those
         cv_results_['mean_test_score'] = scores
 
         best_index_ = np.argmax(scores)  # type: np.int64

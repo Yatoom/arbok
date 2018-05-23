@@ -4,6 +4,8 @@ from sklearn.model_selection._search import BaseSearchCV
 from sklearn.utils import check_X_y
 from sklearn.utils.multiclass import unique_labels
 
+from arbok import out
+
 
 class Wrapper(BaseSearchCV):
     def __init__(self, estimator, preprocessor=None, refit=True, verbose=False, retry_on_error=True):
@@ -44,7 +46,7 @@ class Wrapper(BaseSearchCV):
 
         try:
             if self.verbose:
-                print("Wrapper - fit")
+                out.say("Wrapper is fitting.")
 
             # Fit the wrapped estimator
             self._fit(X_, y, **fit_params)
@@ -87,7 +89,7 @@ class Wrapper(BaseSearchCV):
 
     def predict(self, X):
         if self.verbose:
-            print("Wrapper - predict")
+            out.say("Wrapper is predicting using predict().")
 
         # Check is fit had been called
         self._check_is_fitted('predict')
@@ -97,7 +99,7 @@ class Wrapper(BaseSearchCV):
 
     def predict_proba(self, X):
         if self.verbose:
-            print("Wrapper - predict_proba")
+            out.say("Wrapper is predicting using predict_proba().")
 
         # Check is fit had been called
         self._check_is_fitted('predict_proba')

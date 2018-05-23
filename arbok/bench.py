@@ -1,5 +1,6 @@
 import json
 import os
+from arbok import out
 import subprocess
 
 import click
@@ -147,12 +148,15 @@ def run(classifier, task_id, config, preprocessor, apikey, log):
 
     with open(config, "r") as f:
         cfg = json.load(f)
+        out.header("Config")
+        out.log(config)
+        out.pretty(cfg)
 
     tpot = cfg['tpot']
     autosklearn = cfg['autosklearn']
     wrapper = cfg['wrapper']
 
-    print(f"Running {classifier} on task {task_id}.")
+    out.say(f"Running {classifier} on task {task_id}.")
     id, output = Benchmark.run_job(classifier, task_id, wrapper, tpot, autosklearn, preprocessor, apikey=apikey)
 
     # Store output

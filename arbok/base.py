@@ -129,8 +129,7 @@ class Wrapper(BaseSearchCV):
 
         return predictions
 
-    @staticmethod
-    def _get_cv_results(estimator):
+    def _get_cv_results(self, estimator):
         return NotImplementedError()
 
     def _fit(self, X, y, **fit_params):

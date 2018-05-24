@@ -16,6 +16,7 @@ def log(*args, **kwargs):
 
 def pretty(*args, **kwargs):
     pprint.PrettyPrinter(indent=4).pprint(*args, **kwargs)
+    print()
 
 
 def header(name):

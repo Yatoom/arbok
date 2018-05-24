@@ -27,8 +27,7 @@ class AutoSklearnWrapper(Wrapper):
     def _refit(self, X, y):
         self.estimator.fit(X, y)
 
-    @staticmethod
-    def _get_cv_results(estimator):
+    def _get_cv_results(self, estimator):
         # Get results and convert to lists, so that it is json serializable
         results = estimator.cv_results_
         lists = dict([(i, j if isinstance(j, list) else j.tolist()) for i, j in results.items()])

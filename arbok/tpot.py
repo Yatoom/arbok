@@ -13,8 +13,11 @@ from arbok.base import Wrapper
 class TPOTWrapper(Wrapper):
     def __init__(self, preprocessor=None, refit=True, verbose=False, retry_on_error=True, **params):
 
+        # Get config_dict
+        self.CONFIG_DICT = classifier.classifier_config_dict
+
         # Create estimator
-        self.estimator = TPOTClassifier(**params)
+        self.estimator = TPOTClassifier(**dict(params, config_dict=self.CONFIG_DICT))
 
         # Call to super
         super(TPOTWrapper, self).__init__(estimator=self.estimator, preprocessor=preprocessor, refit=refit,
@@ -43,8 +46,7 @@ class TPOTWrapper(Wrapper):
         self.estimator.fitted_pipeline_.fit(X, y)
 
     # Implementation of get internal _get_cv_results
-    @staticmethod
-    def _get_cv_results(estimator):
+    def _get_cv_results(self, estimator):
         # Get a dictionary of string representations of tested pipelines and their scores
         individuals = dict([(i, j['internal_cv_score']) for i, j in estimator.evaluated_individuals_.items()])
 
@@ -60,7 +62,7 @@ class TPOTWrapper(Wrapper):
 
         # Load configuration from TPOT. We will use this to make sure all possible parameters are included.
         # We use a special flatten method, to make the parameters look like the ones in param_dicts.
-        config = TPOTWrapper._flatten(classifier.classifier_config_dict, parent_key="", sep="__")
+        config = TPOTWrapper._flatten(self.CONFIG_DICT, parent_key="", sep="__")
         config_keys = list(config.keys())
 
         # Instead of, for example, RFE__estimator__ExtratreesClassifier__n_estimators,

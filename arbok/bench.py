@@ -148,8 +148,10 @@ def run(classifier, task_id, config, preprocessor, apikey, log):
 
     with open(config, "r") as f:
         cfg = json.load(f)
-        out.header("Config")
-        out.log(config)
+        out.say(f"Configuration file: {config}")
+        out.say(f"Contents configuration file:")
+        # out.header("Config")
+        # out.log(config)
         out.pretty(cfg)
 
     tpot = cfg['tpot']

@@ -1,6 +1,7 @@
 import json
 import os
 from arbok import out
+import arbok
 import subprocess
 
 import click
@@ -83,8 +84,7 @@ class Benchmark:
 
         task = openml.tasks.get_task(task_id)
         dataset = task.get_dataset()
-        _, categorical = dataset.get_data(return_categorical_indicator=True)
-        categorical = categorical[:-1]  # Remove last index (which is the class)
+        categorical = dataset.get_features_by_type("nominal", exclude=["Class"])
 
         if name == "default":
 
@@ -93,7 +93,8 @@ class Benchmark:
                 ConditionalImputer(
                     categorical_features=categorical,
                     strategy="mean",
-                    strategy_nominal="most_frequent"
+                    strategy_nominal="most_frequent",
+                    fill_empty=0
                 ),
 
                 OneHotEncoder(
@@ -148,10 +149,9 @@ def run(classifier, task_id, config, preprocessor, apikey, log):
 
     with open(config, "r") as f:
         cfg = json.load(f)
+        out.say(f"Version: {arbok.__version__}")
         out.say(f"Configuration file: {config}")
         out.say(f"Contents configuration file:")
-        # out.header("Config")
-        # out.log(config)
         out.pretty(cfg)
 
     tpot = cfg['tpot']

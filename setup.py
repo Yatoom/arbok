@@ -1,5 +1,6 @@
 from os import path
 from setuptools import setup
+import arbok
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -8,7 +9,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='arbok',
-    version='0.1.5',
+    version=arbok.__version__,
     packages=['arbok'],
     url='https://github.com/Yatoom/arbok',
     license='',

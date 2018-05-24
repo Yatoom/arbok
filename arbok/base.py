@@ -45,8 +45,9 @@ class Wrapper(BaseSearchCV):
         X, y = check_X_y(X_, y)
 
         try:
+            aid = None
             if self.verbose:
-                out.say("Wrapper is fitting.")
+                aid = out.start("Fitting")
 
             # Fit the wrapped estimator
             self._fit(X_, y, **fit_params)
@@ -58,9 +59,14 @@ class Wrapper(BaseSearchCV):
             self.best_params_ = best_params_
             self.best_score_ = best_score_
 
+            if self.verbose:
+                out.done("Fitting", aid)
+
             # Refit
             if self.refit:
+                aid = out.start("Refitting")
                 self._refit(X_, y)
+                out.done("Refitting", aid)
 
         except ValueError as e:
             if self.retry_on_error:
@@ -88,24 +94,40 @@ class Wrapper(BaseSearchCV):
         return self
 
     def predict(self, X):
+        aid = None
         if self.verbose:
-            out.say("Wrapper is predicting using predict().")
+            aid = out.start("predict()")
 
         # Check is fit had been called
         self._check_is_fitted('predict')
 
         X_ = self.preprocessor.transform(X) if self.preprocessor else X
-        return self.estimator.predict(X_)
+        predictions = self.estimator.predict(X_)
+        if self.verbose:
+            out.done("predict()", aid)
+        return predictions
 
     def predict_proba(self, X):
+        aid = None
         if self.verbose:
-            out.say("Wrapper is predicting using predict_proba().")
+            aid = out.start("predict_proba()")
 
         # Check is fit had been called
         self._check_is_fitted('predict_proba')
 
         X_ = self.preprocessor.transform(X) if self.preprocessor else X
-        return self.estimator.predict_proba(X_)
+
+        try:
+            predictions = self.estimator.predict_proba(X_)
+        except (RuntimeError, AttributeError) as e:
+            if self.verbose:
+                out.fail("predict_proba()", aid)
+            raise AttributeError()
+
+        if self.verbose:
+            out.done("predict_proba()", aid)
+
+        return predictions
 
     @staticmethod
     def _get_cv_results(estimator):

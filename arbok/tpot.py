@@ -4,8 +4,6 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.svm import LinearSVC
 from tpot import TPOTClassifier
 from tpot.config import classifier
 
@@ -35,10 +33,10 @@ class TPOTWrapper(Wrapper):
         self.estimator.fit(X, y, **fit_params)
 
         # Fix for LinearSVC not having a method `fit_proba`.
-        last_step = self.estimator.fitted_pipeline_.steps[-1][1]
+        # last_step = self.estimator.fitted_pipeline_.steps[-1][1]
 
-        if isinstance(last_step, LinearSVC):
-            self.estimator.fitted_pipeline_ = CalibratedClassifierCV(self.estimator.fitted_pipeline_)
+        # if isinstance(last_step, LinearSVC):
+        #     self.estimator.fitted_pipeline_ = CalibratedClassifierCV(self.estimator.fitted_pipeline_)
 
     # Implementation of internal _refit
     def _refit(self, X, y):

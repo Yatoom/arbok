@@ -1,21 +1,27 @@
 import numpy as np
 from autosklearn.estimators import AutoSklearnClassifier
+from autosklearn.metrics import accuracy
 
 from arbok.base import Wrapper
+from arbok.out import say
 
 
 class AutoSklearnWrapper(Wrapper):
     def __init__(self, preprocessor=None, refit=True, verbose=False, retry_on_error=True, **params):
-        self.estimator = AutoSklearnClassifier(**params)
+        self.estimator = AutoSklearnClassifier(**dict(params))
 
         # Call to super
         super(AutoSklearnWrapper, self).__init__(estimator=self.estimator, preprocessor=preprocessor, refit=refit,
                                                  verbose=verbose,
                                                  retry_on_error=retry_on_error)
 
+    def predict_proba(self, X):
+        say("WARNING: predict_proba() not working well in Autosklearn. Raising AttributeError.")
+        raise AttributeError()
+
     # Implementation of internal _fit
     def _fit(self, X, y, **fit_params):
-        self.estimator.fit(X, y, **fit_params)
+        self.estimator.fit(X, y, **fit_params, metric=accuracy)
 
     # Implementation of internal _refit
     def _refit(self, X, y):

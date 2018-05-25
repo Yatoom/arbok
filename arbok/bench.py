@@ -1,5 +1,8 @@
 import json
 import os
+
+from sklearn.feature_selection import VarianceThreshold
+
 from arbok import out
 import arbok
 import subprocess
@@ -99,7 +102,9 @@ class Benchmark:
 
                 OneHotEncoder(
                     categorical_features=categorical, handle_unknown="ignore", sparse=False
-                )
+                ),
+
+                VarianceThreshold()
             )
         else:
             raise ValueError(f"Preprocessor {name} unknown")

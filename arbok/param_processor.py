@@ -1,4 +1,5 @@
 import numbers
+from collections import Iterable
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -6,8 +7,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 class ParamPreprocessor(BaseEstimator, TransformerMixin):
-
-    def __init__(self, types):
+    def __init__(self, types="detect"):
 
         # List of types for each column
         self.types = types
@@ -39,10 +39,15 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         X_ = np.copy(X)
         types = self.types
 
+        if self.types == "detect":
+            unique = ParamPreprocessor._get_unique(X_)
+            types = self._detect_types(unique)
+
         # Preprocessing steps
         X_, types = ParamPreprocessor._remove_unsupported(X_, types)
         X_, types = ParamPreprocessor._split_mixed(X_, types)
-        mapping = ParamPreprocessor._create_mapping(X_, types)
+        distinct = ParamPreprocessor._get_unique(X_)
+        mapping = ParamPreprocessor._create_mapping(distinct, types)
         X_ = ParamPreprocessor._nominal_to_numerical(X_, types, mapping)
 
         X_ = ParamPreprocessor._booleans_to_numerical(X_, types)
@@ -54,7 +59,8 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         # Fit One Hot Encoder
         categorical_features = np.where(np.array(types) == "nominal")[0]
         n_values = [len(mapping[i]) for i in categorical_features]
-        self.one_hot_encoder = OneHotEncoder(categorical_features=categorical_features, n_values=n_values, sparse=False)
+        self.one_hot_encoder = OneHotEncoder(categorical_features=categorical_features, n_values=n_values,
+                                             sparse=False)
         X_ = self.one_hot_encoder.fit_transform(X_)
 
         # Fit Standard Scaler
@@ -63,10 +69,28 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
 
         return X_
 
+    @staticmethod
+    def _detect_types(unique):
+        types = []
+        for values in unique:
+            if any(not isinstance(x, str) and isinstance(x, Iterable) for x in values):
+                types.append("iterable")
+            elif any(isinstance(x, bool) for x in values):
+                types.append("bool")
+            elif all(x is None or isinstance(x, numbers.Number) for x in values):
+                types.append("numeric")
+            elif all(x is None or not isinstance(x, numbers.Number) for x in values):
+                types.append("nominal")
+            else:
+                types.append("mixed")
+
+        return types
+
     # Doesn't need fitting
     @staticmethod
     def _remove_unsupported(X, types):
-        indices = [index for index, value in enumerate(types) if value not in ["mixed", "numerical", "bool", "nominal"]]
+        indices = [index for index, value in enumerate(types) if
+                   value not in ["mixed", "numerical", "bool", "nominal"]]
         # indices = np.where(np.array(types) not in ["mixed", "numerical", "bool", "nominal"])[0]
         new_X = np.delete(X, indices, 1)
         new_types = np.delete(types, indices, 0).tolist()
@@ -125,11 +149,11 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         return columns.T
 
     @staticmethod
-    def _create_mapping(X, types):
+    def _create_mapping(unique, types):
         # Create a function that is applied to each item in a vector
         # replace_non_nominal = np.vectorize(lambda x: x if isinstance(x, str) else "<unkn>")
 
-        unique = ParamPreprocessor._get_unique(X)
+        # unique = ParamPreprocessor._get_unique(unique)
 
         indices_nominal = np.where(np.array(types) == "nominal")[0]
         result = dict([(i, {}) for i in indices_nominal])
@@ -144,7 +168,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
     def _get_unique(X):
         result = []
         for column in X.T:
-            result.append(np.array(list(set(column))))
+            result.append(list(set(column)))
         return result
 
     @staticmethod

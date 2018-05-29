@@ -206,9 +206,10 @@ Preprocessing parameters
         [1, 10, 0.1, "zip", "six"]
     ], dtype=object)
 
+    # Manually specify types, or use types="detect" to automatically detect types
     types = ["numeric", "mixed", "bool", "nominal", "nominal"]
 
-    pipeline = make_pipeline(ParamPreprocessor(types), VarianceThreshold())
+    pipeline = make_pipeline(ParamPreprocessor(types="detect"), VarianceThreshold())
 
     pipeline.fit_transform(X)
 

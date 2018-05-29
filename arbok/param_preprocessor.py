@@ -175,10 +175,5 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
 
     @staticmethod
     def _fix_null(X):
-
-        # Create a function that is applied to each item in a vector
-        to_nan = np.vectorize(lambda x: x if x is not None else np.nan)
-
-        X_ = np.array([to_nan(i) for i in X])
-
+        X_ = np.array([np.array(i, dtype=np.float64) for i in X], dtype=np.float64)
         return np.nan_to_num(X_)

@@ -165,3 +165,47 @@ bench.create_jobs(tasks, classifiers=["tpot", "autosklearn"])
 # And finally, we submit the jobs using qsub
 bench.submit_jobs()
 ```
+
+## Preprocessing parameters
+```python
+from arbok import ParamPreprocessor
+import numpy as np
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.pipeline import make_pipeline
+
+X = np.array([
+    [1, 2, True, "foo", "one"],
+    [1, 3, False, "bar", "two"],
+    [np.nan, "bar", None, None, "three"],
+    [1, 7, 0, "zip", "four"],
+    [1, 9, 1, "foo", "five"],
+    [1, 10, 0.1, "zip", "six"]
+], dtype=object)
+
+types = ["numeric", "mixed", "bool", "nominal", "nominal"]
+
+pipeline = make_pipeline(ParamPreprocessor(types), VarianceThreshold())
+
+pipeline.fit_transform(X)
+```
+Output:
+```
+[[-0.4472136  -0.4472136   1.41421356 -0.70710678 -0.4472136  -0.4472136
+   2.23606798 -0.4472136  -0.4472136  -0.4472136   0.4472136  -0.4472136
+  -0.85226648  1.        ]
+ [-0.4472136   2.23606798 -0.70710678 -0.70710678 -0.4472136  -0.4472136
+  -0.4472136  -0.4472136  -0.4472136   2.23606798  0.4472136  -0.4472136
+  -0.5831297  -1.        ]
+ [ 2.23606798 -0.4472136  -0.70710678 -0.70710678 -0.4472136  -0.4472136
+  -0.4472136  -0.4472136   2.23606798 -0.4472136  -2.23606798  2.23606798
+  -1.39054004 -1.        ]
+ [-0.4472136  -0.4472136  -0.70710678  1.41421356 -0.4472136   2.23606798
+  -0.4472136  -0.4472136  -0.4472136  -0.4472136   0.4472136  -0.4472136
+   0.49341743 -1.        ]
+ [-0.4472136  -0.4472136   1.41421356 -0.70710678  2.23606798 -0.4472136
+  -0.4472136  -0.4472136  -0.4472136  -0.4472136   0.4472136  -0.4472136
+   1.031691    1.        ]
+ [-0.4472136  -0.4472136  -0.70710678  1.41421356 -0.4472136  -0.4472136
+  -0.4472136   2.23606798 -0.4472136  -0.4472136   0.4472136  -0.4472136
+   1.30082778  1.        ]]
+```

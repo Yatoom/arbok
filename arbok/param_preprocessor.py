@@ -73,7 +73,9 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
     def _detect_types(unique):
         types = []
         for values in unique:
-            if any(not isinstance(x, str) and isinstance(x, Iterable) for x in values):
+            if any(isinstance(x, dict) for x in values):
+                types.append("dict")
+            elif any(not isinstance(x, str) and isinstance(x, Iterable) for x in values):
                 types.append("iterable")
             elif any(isinstance(x, bool) for x in values):
                 types.append("bool")

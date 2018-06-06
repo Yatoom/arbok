@@ -42,6 +42,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         if self.types == "detect":
             unique = ParamPreprocessor._get_unique(X_)
             types = self._detect_types(unique)
+            self.types = types
 
         # Preprocessing steps
         X_, types = ParamPreprocessor._remove_unsupported(X_, types)

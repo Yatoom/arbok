@@ -87,7 +87,7 @@ class Benchmark:
 
         task = openml.tasks.get_task(task_id)
         dataset = task.get_dataset()
-        categorical = dataset.get_features_by_type("nominal", exclude=["Class"])
+        categorical = dataset.get_features_by_type("nominal", exclude=[task.target_name])
 
         if name == "default":
 

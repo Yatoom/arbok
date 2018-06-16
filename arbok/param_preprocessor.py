@@ -7,16 +7,16 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 class ParamPreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, types="detect"):
+    def __init__(self, types="detect", scaler=StandardScaler()):
 
         # List of types for each column
         self.types = types
         self.mapping = None
         self.one_hot_encoder = None
-        self.standard_scaler = None
+        self.scaler = scaler
 
     def fit(self, X):
-        self.fit_transform(X)
+        self.fit_transform(X, )
         return self
 
     def transform(self, X, y=None):
@@ -31,11 +31,11 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         X_ = ParamPreprocessor._booleans_to_numerical(X_, types)
         X_ = ParamPreprocessor._fix_null(X_)
         X_ = self.one_hot_encoder.transform(X_)
-        X_ = self.standard_scaler.transform(X_)
+        X_ = self.scaler.transform(X_)
 
         return X_
 
-    def fit_transform(self, X, y=None):
+    def fit_transform(self, X, y=None, **kwargs):
         X_ = np.copy(X)
         types = self.types
 
@@ -64,9 +64,8 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
                                              sparse=False)
         X_ = self.one_hot_encoder.fit_transform(X_)
 
-        # Fit Standard Scaler
-        self.standard_scaler = StandardScaler(with_mean=True)
-        X_ = self.standard_scaler.fit_transform(X_)
+        # Fit scaler
+        X_ = self.scaler.fit_transform(X_)
 
         return X_
 

@@ -22,7 +22,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        X_ = np.copy(X)
+        X_ = np.array(X, copy=True, dtype=object)
         types = self.types
         mapping = self.mapping
 
@@ -38,7 +38,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         return X_
 
     def fit_transform(self, X, y=None, **kwargs):
-        X_ = np.copy(X)
+        X_ = np.array(X, copy=True, dtype=object)
         types = self.types
         names = self.names
 
@@ -76,30 +76,38 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         return X_
 
     @staticmethod
-    def one_hot_encode_names(categorical_indices, categorical_n_values, names):
+    def one_hot_encode_names(names, encoder, mapping):
 
         # Check if names is None
         if names is None:
             return None
 
+        # Get categorical features
+        categorical_features = encoder.categorical_features
+
         # Convert mask to array of indices if needed
-        if isinstance(categorical_indices[0], bool):
-            categorical_indices = np.where(categorical_indices)[0]
+        if isinstance(categorical_features[0], bool):
+            categorical_features = np.where(categorical_features)[0]
 
         # Convert to list
-        categorical_indices = list(categorical_indices)
+        categorical_features = list(categorical_features)
 
+        # Split categorical and numerical names
+        categorical_names = np.array(names)[categorical_features].tolist()
+        numerical_names = [name for index, name in enumerate(names) if index not in categorical_features]
+
+        # Get the categorical values from the mapping
+        categorical_values = [list(i.keys()) for i in mapping.values()]
+
+        # Add one hot encoded names
         result = []
-        for index, name in enumerate(names):
-            if index in categorical_indices:
-                amount = categorical_n_values[categorical_indices.index(index)]
+        for index, name in enumerate(categorical_names):
+            amount = encoder.n_values[index]
+            for i in range(amount):
+                value = categorical_values[index][i]
+                result.append(f"{name}__{value}")
 
-                for i in range(amount):
-                    result.append(f"{name}__{i}")
-            else:
-                result.append(name)
-
-        return result
+        return result + numerical_names
 
     @staticmethod
     def _detect_types(unique):
@@ -140,7 +148,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
     @staticmethod
     def _split_mixed(X, types, names):
         indices = np.where(np.array(types) == "mixed")[0]
-        columns = np.copy(X.T)
+        columns = np.array(X.T, copy=True, dtype=object)
         new_types = types
         new_names = copy(names)
         for i in indices:
@@ -171,7 +179,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
     def _nominal_to_numerical(X, types, mapping):
         indices_nominal = np.where(np.array(types) == "nominal")[0]
 
-        columns = np.copy(X.T)
+        columns = np.array(X.T, copy=True, dtype=object)
 
         for i in indices_nominal:
             # Create a function that is applied to each item in a vector
@@ -189,7 +197,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         to_numerical = np.vectorize(lambda x: 0.5 if x is None else 0 if not x else 1)
 
         indices_bool = np.where(np.array(types) == "bool")[0]
-        columns = np.copy(X.T)
+        columns = np.array(X.T, copy=True, dtype=object)
         for i in indices_bool:
             columns[i] = to_numerical(columns[i])
         return columns.T

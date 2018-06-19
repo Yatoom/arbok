@@ -68,7 +68,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         X_ = self.one_hot_encoder.fit_transform(X_)
 
         # Expand names according to one hot encoding and store result
-        self.names = self.one_hot_encode_names(categorical_features, self.one_hot_encoder.n_values, names)
+        self.names = self.one_hot_encode_names(names, self.one_hot_encoder, mapping)
 
         # Fit scaler
         X_ = self.scaler.fit_transform(X_)

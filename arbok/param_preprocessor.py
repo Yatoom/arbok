@@ -83,7 +83,10 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
 
         # Convert mask to array of indices if needed
         if isinstance(categorical_indices[0], bool):
-            categorical_indices = np.where(categorical_indices)[0].tolist()
+            categorical_indices = np.where(categorical_indices)[0]
+
+        # Convert to list
+        categorical_indices = list(categorical_indices)
 
         result = []
         for index, name in enumerate(names):

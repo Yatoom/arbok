@@ -1,5 +1,6 @@
 import numbers
 from collections import Iterable
+from copy import copy
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -141,7 +142,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         indices = np.where(np.array(types) == "mixed")[0]
         columns = np.copy(X.T)
         new_types = types
-        new_names = names
+        new_names = copy(names)
         for i in indices:
             # Get numerical and nominal
             col = columns[i]

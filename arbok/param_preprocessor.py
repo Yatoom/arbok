@@ -29,8 +29,8 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         # Preprocessing steps
         X_, types, _ = ParamPreprocessor._remove_unsupported(X_, types, None)
         X_, types, _ = ParamPreprocessor._split_mixed(X_, types, None)
-        X_ = ParamPreprocessor._nominal_to_numerical(X_, types, mapping)
-        X_ = ParamPreprocessor._booleans_to_numerical(X_, types)
+        X_ = ParamPreprocessor._nominal_to_numeric(X_, types, mapping)
+        X_ = ParamPreprocessor._booleans_to_numeric(X_, types)
         X_ = ParamPreprocessor._fix_null(X_)
         X_ = self.one_hot_encoder.transform(X_)
         X_ = self.scaler.transform(X_)
@@ -52,9 +52,9 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         X_, types, names = ParamPreprocessor._split_mixed(X_, types, names)
         distinct = ParamPreprocessor._get_unique(X_)
         mapping = ParamPreprocessor._create_mapping(distinct, types)
-        X_ = ParamPreprocessor._nominal_to_numerical(X_, types, mapping)
+        X_ = ParamPreprocessor._nominal_to_numeric(X_, types, mapping)
 
-        X_ = ParamPreprocessor._booleans_to_numerical(X_, types)
+        X_ = ParamPreprocessor._booleans_to_numeric(X_, types)
         X_ = ParamPreprocessor._fix_null(X_)
 
         # Save mapping
@@ -92,9 +92,9 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         # Convert to list
         categorical_features = list(categorical_features)
 
-        # Split categorical and numerical names
+        # Split categorical and numeric names
         categorical_names = np.array(names)[categorical_features].tolist()
-        numerical_names = [name for index, name in enumerate(names) if index not in categorical_features]
+        numeric_names = [name for index, name in enumerate(names) if index not in categorical_features]
 
         # Get the categorical values from the mapping
         categorical_values = [list(i.keys()) for i in mapping.values()]
@@ -107,7 +107,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
                 value = categorical_values[index][i]
                 result.append(f"{name}__{value}")
 
-        return result + numerical_names
+        return result + numeric_names
 
     @staticmethod
     def _detect_types(unique):
@@ -132,8 +132,8 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
     @staticmethod
     def _remove_unsupported(X, types, names):
         indices = [index for index, value in enumerate(types) if
-                   value not in ["mixed", "numerical", "bool", "nominal"]]
-        # indices = np.where(np.array(types) not in ["mixed", "numerical", "bool", "nominal"])[0]
+                   value not in ["mixed", "numeric", "bool", "nominal"]]
+        # indices = np.where(np.array(types) not in ["mixed", "numeric", "bool", "nominal"])[0]
         new_X = np.delete(X, indices, 1)
         new_types = np.delete(types, indices, 0).tolist()
 
@@ -152,7 +152,7 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
         new_types = types
         new_names = copy(names)
         for i in indices:
-            # Get numerical and nominal
+            # Get numeric and nominal
             col = columns[i]
             col_num = np.array([item if isinstance(item, numbers.Number) else np.nan for item in col])
             col_nom = np.array([item if not isinstance(item, numbers.Number) else "<unkn>" for item in col])
@@ -162,12 +162,12 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
             columns = np.vstack([columns, col_nom])
 
             # Add types
-            new_types[i] = "numerical"
+            new_types[i] = "numeric"
             new_types.append("nominal")
 
             # Update names as well
             if names is not None:
-                new_names[i] = f"{names[i]}__numerical"
+                new_names[i] = f"{names[i]}__numeric"
                 new_names.append(f"{names[i]}__nominal")
 
         new_X = columns.T
@@ -176,38 +176,34 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
 
     # Needs a map created during fitting
     @staticmethod
-    def _nominal_to_numerical(X, types, mapping):
+    def _nominal_to_numeric(X, types, mapping):
         indices_nominal = np.where(np.array(types) == "nominal")[0]
 
         columns = np.array(X.T, copy=True, dtype=object)
 
         for i in indices_nominal:
             # Create a function that is applied to each item in a vector
-            to_numerical = np.vectorize(lambda x: mapping[i][x] if x in mapping[i] else mapping[i]["<unkn>"])
+            to_numeric = np.vectorize(lambda x: mapping[i][x] if x in mapping[i] else mapping[i]["<unkn>"])
 
-            columns[i] = to_numerical(columns[i])
+            columns[i] = to_numeric(columns[i])
 
         return columns.T
 
     # Doesn't need fitting
     @staticmethod
-    def _booleans_to_numerical(X, types):
+    def _booleans_to_numeric(X, types):
 
         # Create a function that is applied to each item in a vector
-        to_numerical = np.vectorize(lambda x: 0.5 if x is None else 0 if not x else 1)
+        to_numeric = np.vectorize(lambda x: 0.5 if x is None else 0 if not x else 1)
 
         indices_bool = np.where(np.array(types) == "bool")[0]
         columns = np.array(X.T, copy=True, dtype=object)
         for i in indices_bool:
-            columns[i] = to_numerical(columns[i])
+            columns[i] = to_numeric(columns[i])
         return columns.T
 
     @staticmethod
     def _create_mapping(unique, types):
-        # Create a function that is applied to each item in a vector
-        # replace_non_nominal = np.vectorize(lambda x: x if isinstance(x, str) else "<unkn>")
-
-        # unique = ParamPreprocessor._get_unique(unique)
 
         indices_nominal = np.where(np.array(types) == "nominal")[0]
         result = dict([(i, {}) for i in indices_nominal])

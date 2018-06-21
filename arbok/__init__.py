@@ -4,4 +4,4 @@ from arbok.preprocessing import ConditionalImputer
 from arbok.bench import Benchmark
 from arbok.param_preprocessor import ParamPreprocessor
 
-__version__ = "0.1.18"
+__version__ = "0.1.19"

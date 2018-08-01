@@ -79,6 +79,10 @@ class ParamPreprocessor(BaseEstimator, TransformerMixin):
 
         # Get categorical features
         categorical_features = encoder.categorical_features
+        
+        # Check if categorical features is not empty
+        if len(categorical_features) == 0:
+            return names
 
         # Convert mask to array of indices if needed
         if isinstance(categorical_features[0], bool):
